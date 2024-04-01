@@ -1,3 +1,11 @@
+## Thoughts
+Damn I found it hard to figure out which library to use for the encryption/decryption and signing of the transactions.
+In the end I used js-sha3 and elliptic and secp256k1. Then I watch the walkthrough video and I see that I should have used ethereum-cryptography library instead.😅 Oh well...
+
+I created 5 demo accounts, they are stored in server/accounts.js, also there are stored private keys of those accounts in accountsWithPrivateKey constant. But not to be on the server, but just for ease of use. In real application each account would have their private key stored somewhere safe. So the BE nor FE know about these private keys. This keeps it secure.
+On FE I hash the message with keccak256 and sign the message with secp256k1 using the private key provided in an input in component Transfer just before calling the send endpoint.
+And the BE I do some input checks for if the addreses provided exist and then I get the public key from the signature and hash, then I compare the recovered public key to the sender public key and if they are matching I proceed to update the balances accordingly and sending a successful message to the FE. Otherwise send error message to FE. 
+
 ## ECDSA Node
 
 This project is an example of using a client and server to facilitate transfers between different addresses. Since there is just a single server on the back-end handling transfers, this is clearly very centralized. We won't worry about distributed consensus for this project.
