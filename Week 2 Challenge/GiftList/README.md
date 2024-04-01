@@ -1,4 +1,4 @@
-#Thoughts
+## Thoughts
 This was rather easy I would say. Not having to actually code the Merkle tree myself which is the real challenge made it a walk in the park.
 Just generate the proof send it and the name to the server. In the server use the verify function and bam you have the desired result.
 Oh yeah also had to hard code the merkle tree root in the server haha.
