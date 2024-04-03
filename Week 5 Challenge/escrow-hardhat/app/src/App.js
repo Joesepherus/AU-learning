@@ -1,9 +1,12 @@
-import { ethers } from 'ethers';
-import { useEffect, useState } from 'react';
-import deploy from './deploy';
-import Escrow from './Escrow';
+import { ethers } from "ethers";
+import { useEffect, useState } from "react";
+import deploy from "./deploy";
+import Escrow from "./Escrow";
+import axios from "axios";
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+const serverUrl = "http://localhost:4000";
 
 export async function approve(escrowContract, signer) {
   const approveTxn = await escrowContract.connect(signer).approve();
@@ -12,12 +15,13 @@ export async function approve(escrowContract, signer) {
 
 function App() {
   const [escrows, setEscrows] = useState([]);
+  console.log('escrows: ', escrows);
   const [account, setAccount] = useState();
   const [signer, setSigner] = useState();
 
   useEffect(() => {
     async function getAccounts() {
-      const accounts = await provider.send('eth_requestAccounts', []);
+      const accounts = await provider.send("eth_requestAccounts", []);
 
       setAccount(accounts[0]);
       setSigner(provider.getSigner());
@@ -26,13 +30,22 @@ function App() {
     getAccounts();
   }, [account]);
 
-  async function newContract() {
-    const beneficiary = document.getElementById('beneficiary').value;
-    const arbiter = document.getElementById('arbiter').value;
-    const value = ethers.utils.parseEther(document.getElementById('eth').value);
-    const escrowContract = await deploy(signer, arbiter, beneficiary, value);
-    console.log('escrowContract: ', escrowContract);
+  useEffect(() => {
+    async function getContracts() {
+      const { data } = await axios.get(`${serverUrl}/contract`, {
+        // TODO: add request body parameters here!
+      });
+      console.log("data: ", data);
+      setEscrows(data);
+    }
+    getContracts();
+  }, []);
 
+  async function newContract() {
+    const beneficiary = document.getElementById("beneficiary").value;
+    const arbiter = document.getElementById("arbiter").value;
+    const value = ethers.utils.parseEther(document.getElementById("eth").value);
+    const escrowContract = await deploy(signer, arbiter, beneficiary, value);
 
     const escrow = {
       address: escrowContract.address,
@@ -40,9 +53,9 @@ function App() {
       beneficiary,
       value: value.toString(),
       handleApprove: async () => {
-        escrowContract.on('Approved', () => {
+        escrowContract.on("Approved", () => {
           document.getElementById(escrowContract.address).className =
-            'complete';
+            "complete";
           document.getElementById(escrowContract.address).innerText =
             "✓ It's been approved!";
         });
@@ -50,6 +63,11 @@ function App() {
         await approve(escrowContract, signer);
       },
     };
+
+    const { data } = await axios.post(`${serverUrl}/contract`, {
+      contract: JSON.stringify(escrow),
+    });
+    console.log('data: ', data);
 
     setEscrows([...escrows, escrow]);
   }
