@@ -1,7 +1,21 @@
 body {
-  background-color: #eee;
+  background-color: #fff;
   display: flex;
   font-family: 'Muli', sans-serif;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to bottom right, #21D19F, #59c6bf);
+  
+}
+
+#root {
+  width: 100%;
+}
+
+
+.appContainer {
+  display: flex;
+  justify-content: center;
 }
 
 .contract, .existing-contracts {
@@ -16,6 +30,7 @@ h1 {
   margin: 10px;
   padding: 10px;
   border-bottom: 1px solid #eee;
+  color: #21D19F;
 }
 
 label {
@@ -32,7 +47,7 @@ input[type="text"] {
 }
 
 .button {
-  background-color: #f58427;
+  background-color: #21D19F;
   color: white;
   text-align: center;
   font-weight: bold;
