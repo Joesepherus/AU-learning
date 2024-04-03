@@ -8,8 +8,13 @@ const provider = new ethers.providers.Web3Provider(window.ethereum);
 
 const serverUrl = "http://localhost:4000";
 
-export async function approve(escrowContract, signer) {
-  const approveTxn = await escrowContract.connect(signer).approve();
+export async function sendGoods(escrowContract, signer) {
+  const approveTxn = await escrowContract.connect(signer).sendGoods();
+  await approveTxn.wait();
+}
+
+export async function confirmReceipt(escrowContract, signer) {
+  const approveTxn = await escrowContract.connect(signer).confirmReceipt();
   await approveTxn.wait();
 }
 
@@ -43,15 +48,23 @@ function App() {
 
   async function newContract() {
     const beneficiary = document.getElementById("beneficiary").value;
-    const arbiter = document.getElementById("arbiter").value;
     const value = ethers.utils.parseEther(document.getElementById("eth").value);
-    const escrowContract = await deploy(signer, arbiter, beneficiary, value);
+    const escrowContract = await deploy(signer, beneficiary, value);
 
     const escrow = {
       address: escrowContract.address,
-      arbiter,
       beneficiary,
       value: value.toString(),
+      handleSendGoods: async () => {
+        escrowContract.on("GoodsSent", () => {
+          document.getElementById(escrowContract.address).className =
+            "complete";
+          document.getElementById(escrowContract.address).innerText =
+            "✓ Goods have been sent!";
+        });
+
+        await sendGoods(escrowContract, signer);
+      },
       handleApprove: async () => {
         escrowContract.on("Approved", () => {
           document.getElementById(escrowContract.address).className =
@@ -60,9 +73,10 @@ function App() {
             "✓ It's been approved!";
         });
 
-        await approve(escrowContract, signer);
+        await confirmReceipt(escrowContract, signer);
       },
     };
+    console.log('escrow: ', escrow);
 
     const { data } = await axios.post(`${serverUrl}/contract`, {
       contract: JSON.stringify(escrow),
@@ -76,10 +90,7 @@ function App() {
     <div className="appContainer">
       <div className="contract">
         <h1> New Contract </h1>
-        <label>
-          Arbiter Address
-          <input type="text" id="arbiter" />
-        </label>
+     
 
         <label>
           Beneficiary Address
@@ -109,7 +120,7 @@ function App() {
 
         <div id="container">
           {escrows.map((escrow) => {
-            return <Escrow key={escrow.address} {...escrow} />;
+            return <Escrow key={escrow.address} {...escrow} handleSendGoods={escrow.handleSendGoods}/>;
           })}
         </div>
       </div>
